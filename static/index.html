@@ -1,11 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Index</title>
-</head>
-<body>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <title>Index</title>
+  </head>
+  <body>
+    <section id="section-header">
+      <header class="site-header">
+        <div class="container header-container">
+          <a href="#" class="logo">台北一日遊</a>
+          <nav class="main-nav">
+            <a href="#" class="nav-link">預定行程</a>
+            <a href="#" class="nav-link">登入/註冊</a>
+          </nav>
+        </div>
+      </header>
+    </section>
+
+    <section id="section-hero">
+      <div class="hero-section">
+        <div class="hero-bg">
+          <img src="/static/img/welcome image.png" alt="Taipei Scenery" />
+        </div>
+        <div class="container hero-content">
+          <div class="hero-text">
+            <h1 class="hero-title">輕鬆享受台北一日悠閒</h1>
+            <p class="hero-subtitle">探索每個角落，體驗城市的深度旅遊行程</p>
+          </div>
+          <div class="search-bar">
+            <div class="search-category" role="button" tabindex="0">
+              <span>全部分類 ▼</span>
+            </div>
+            <div class="category-menu hidden"></div>
+            <div class="search-input-wrapper">
+              <input
+                type="text"
+                class="search-input"
+                placeholder="輸入景點名稱查詢"
+              />
+            </div>
+            <button class="search-btn">
+              <img src="/static/img/search.png" alt="Search" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-main">
+      <div class="main-section">
+        <div class="container">
+          <!-- List Bar -->
+          <div class="list-bar-container">
+            <button class="scroll-btn left-btn">
+              <img src="/static/img/arrow left.png" alt="Scroll Left" />
+            </button>
+            <div class="list-bar"></div>
+            <button class="scroll-btn right-btn">
+              <img src="/static/img/arrow right.png" alt="Scroll Right" />
+            </button>
+          </div>
+
+          <!-- Attractions Grid -->
+          <div class="attractions-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-footer">
+      <footer class="site-footer">
+        <div class="container footer-container">
+          <p>COPYRIGHT © 2021 台北一日遊</p>
+        </div>
+      </footer>
+    </section>
+
+    <script src="/static/script.js"></script>
+  </body>
 </html>
