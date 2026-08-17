@@ -1,11 +1,151 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Attraction</title>
-</head>
-<body>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/attractions.css" />
+    <title>Attraction</title>
+  </head>
+  <body>
+    <section id="section-header">
+      <header class="site-header">
+        <div class="container header-container">
+          <a href="/" class="logo">台北一日遊</a>
+          <nav class="main-nav">
+            <a href="#" class="nav-link">預定行程</a>
+            <a href="#" class="nav-link">登入/註冊</a>
+          </nav>
+        </div>
+      </header>
+    </section>
+
+    <section id="section-hero">
+      <div class="container hero-inner">
+        <div class="hero-image-container">
+          <img src="/static/img/img.png" alt="平安鐘" class="hero-main-image" />
+          <img
+            src="/static/img/arrow left.png"
+            alt="Previous"
+            class="nav-arrow arrow-left"
+          />
+          <img
+            src="/static/img/arrow right.png"
+            alt="Next"
+            class="nav-arrow arrow-right"
+          />
+          <div class="indicator-bar">
+            <div class="indicator active"></div>
+            <div class="indicator"></div>
+            <div class="indicator"></div>
+          </div>
+        </div>
+        <div class="hero-profile">
+          <h1 class="profile-title">平安鐘</h1>
+          <p class="profile-subtitle">公共藝術 at 忠孝復興</p>
+          <div class="booking-form">
+            <h2 class="form-title">訂購導覽行程</h2>
+            <p class="form-desc">
+              以此景點為中心的一日行程，帶您探索城市角落故事
+            </p>
+            <div class="form-group">
+              <label>選擇日期：</label>
+              <input type="date" placeholder="yyyy/mm/dd" />
+            </div>
+            <div class="form-group">
+              <label>選擇時間：</label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="time"
+                    value="morning"
+                    class="radio-input"
+                    checked
+                  />
+                  <svg
+                    class="radio-button"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                  >
+                    <ellipse cx="11" cy="11" rx="11" ry="11" fill="white" />
+                    <ellipse
+                      cx="11"
+                      cy="11"
+                      rx="9"
+                      ry="9"
+                      fill="white"
+                      class="inner-ellipse"
+                    />
+                  </svg>
+                  上半天
+                </label>
+                <label class="radio-label">
+                  <input
+                    type="radio"
+                    name="time"
+                    value="afternoon"
+                    class="radio-input"
+                  />
+                  <svg
+                    class="radio-button"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 22 22"
+                  >
+                    <ellipse cx="11" cy="11" rx="11" ry="11" fill="white" />
+                    <ellipse
+                      cx="11"
+                      cy="11"
+                      rx="9"
+                      ry="9"
+                      fill="white"
+                      class="inner-ellipse"
+                    />
+                  </svg>
+                  下半天
+                </label>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>導覽費用：</label>
+              <span class="price">新台幣 2000 元</span>
+            </div>
+            <button class="btn-submit">開始預約行程</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-details">
+      <div class="container details-inner">
+        <div class="separator"></div>
+        <p class="description">
+          平安鐘祈求大家的平安，這是為了紀念921地震週年的設計，在喧鬧的廣場上每個小時鳴鐘，保佑平安，祈禱臺灣不會再發生這樣的天災。雙手合十加上108個黃色的琉璃乳丁，隨著緩緩流下的水，在底下的一個小噴泉噴出。雙手合十的意義，一個是祈福，一個是包容，教我們要包容這樣的改變，撫平這樣的傷口。下面的水緩緩流出，代表著人的生命力是不斷地延續下去。緩緩地鐘聲，卻帶來心中的寧靜。
+          這個平安鐘是由建築師姚仁喜與琉璃創作家王俠軍共同設計，長6公尺、寬5公尺，以鑄銅製成，由法鼓山文教基金會全額出資。平安鐘點綴都市景觀，不時提醒大家，面對刻骨銘心的災難痛苦，更應該有謙卑的一顆心。
+        </p>
+        <div class="info-block">
+          <h3>景點地址：</h3>
+          <p>臺北市 大安區忠孝東路4段</p>
+        </div>
+        <div class="info-block">
+          <h3>交通方式：</h3>
+          <p>
+            捷運站名：忠孝復興站4號出口1.公車：204、212、212直、232、232副、262、262(區間)、278、299、521、605、605(副)、605(新台五線)、667、903、忠孝新幹線至頂好市場站
+            2.車位：太平洋崇光百貨地下停車場或市民大道附近地下停車場
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-footer">
+      <footer class="footer">
+        <div class="container">
+          <p>COPYRIGHT © 2021 台北一日遊</p>
+        </div>
+      </footer>
+    </section>
+
+    <script src="/static/script.js"></script>
+  </body>
 </html>
