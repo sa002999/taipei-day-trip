@@ -1,0 +1,279 @@
+body {
+  font-family: "Noto Sans TC", sans-serif;
+  margin: 0;
+  padding: 0;
+  color: #666666;
+  background-color: #ffffff;
+  line-height: 1.5;
+  padding-top: 54px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.logo {
+  color: #448899;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+}
+.main-nav {
+  display: flex;
+  gap: 20px;
+}
+.nav-link {
+  color: #666666;
+  font-size: 16px;
+  padding: 10px;
+}
+.nav-link:hover {
+  color: #448899;
+}
+
+#section-hero {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+.hero-inner {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+.hero-image-container {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  height: 400px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex: 1 1 540px;
+}
+.hero-main-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  opacity: 0.75;
+}
+.arrow-left {
+  left: 10px;
+}
+.arrow-right {
+  right: 10px;
+}
+.indicator-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+}
+.indicator {
+  height: 5px;
+  flex: 1;
+  background-color: #ffffff;
+  opacity: 0.75;
+}
+.indicator.active {
+  background-color: #000000;
+  opacity: 1;
+}
+
+.hero-profile {
+  flex: 1 1 500px;
+  display: flex;
+  flex-direction: column;
+}
+.profile-title {
+  font-size: 24px;
+  color: #666666;
+  margin-bottom: 5px;
+}
+.profile-subtitle {
+  font-size: 16px;
+  color: #666666;
+  margin-bottom: 20px;
+}
+.booking-form {
+  background-color: #e8e8e8;
+  border-radius: 5px;
+  padding: 15px 20px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.form-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: #666666;
+}
+.form-desc {
+  font-size: 14px;
+  color: #666666;
+}
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.form-group > label {
+  width: 85px;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+.date-input {
+  position: relative;
+  width: 100%;
+}
+.date-input input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 45px 10px 12px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.date-input img {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 20px;
+  height: 20px;
+
+  pointer-events: none;
+}
+.radio-group {
+  display: flex;
+  gap: 15px;
+}
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.radio-input {
+  display: none;
+}
+.radio-button {
+  width: 22px;
+  height: 22px;
+  margin-right: 5px;
+}
+.radio-button .inner-ellipse {
+  display: none;
+}
+.radio-input:checked + .radio-button .inner-ellipse {
+  display: block;
+  fill: #448899;
+}
+.price {
+  color: #666666;
+}
+.btn-submit {
+  background-color: #448899;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  align-self: flex-start;
+  margin-top: 10px;
+}
+
+#section-details {
+  padding-bottom: 40px;
+}
+.separator {
+  width: 100%;
+  height: 0;
+  border-top: 1px solid #e8e8e8;
+  margin: 0 0 40px 0;
+  display: block;
+  box-sizing: border-box;
+}
+.details-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.description {
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+.info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.info-block h3 {
+  font-size: 16px;
+  font-weight: bold;
+}
+.info-block p {
+  line-height: 1.6;
+}
+
+.footer {
+  background-color: #757575;
+  color: #ffffff;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+@media (max-width: 768px) {
+  .hero-inner {
+    flex-direction: column;
+  }
+  .hero-image-container {
+    max-width: 100%;
+  }
+}
