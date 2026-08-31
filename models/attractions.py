@@ -43,5 +43,12 @@ class Attraction:
             "mrt": ", ".join(self.mrt) if self.mrt else "",
             "lat": self.latitude,
             "lng": self.longitude,
-            "images": [f"{base}{path}" if base and path.startswith("/") else f"{base}/{path}" if base else path for path in self.images],
+            "images": [
+                (
+                    f"{base}{path}"
+                    if base and path.startswith("/")
+                    else f"{base}/{path}" if base else path
+                )
+                for path in self.images
+            ],
         }

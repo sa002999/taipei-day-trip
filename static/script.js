@@ -5,8 +5,12 @@ let loadMoreObserver = null;
 let categories = ["全部分類"];
 let selectedCategory = "全部分類";
 let currentKeyword = "";
+let isLoggedIn = false;
+let currentUser = null;
 
 document.addEventListener("DOMContentLoaded", () => {
+  initAuthModal();
+
   // 檢查是否為 attraction 頁面
   const isAttractionPage = document.querySelector(".hero-profile");
 
@@ -22,6 +26,162 @@ document.addEventListener("DOMContentLoaded", () => {
     loadAttractions();
   }
 });
+
+function initAuthModal() {
+  const loginRegisterLink = document.querySelector("#login-register-link");
+  const signupModal = document.querySelector("#section-signup-modal");
+  const loginModal = document.querySelector("#section-login-modal");
+
+  if (!loginRegisterLink || !signupModal || !loginModal) return;
+
+  const closeButtons = document.querySelectorAll(".modal-overlay .close-btn");
+  const signupForm = signupModal.querySelector(".signup-form");
+  const loginForm = loginModal.querySelector(".login-form");
+
+  const openModal = (modal) => {
+    modal.classList.add("is-visible");
+  };
+
+  const closeModal = (modal) => {
+    modal.classList.remove("is-visible");
+
+    if (
+      !signupModal.classList.contains("is-visible") &&
+      !loginModal.classList.contains("is-visible")
+    ) {
+    }
+  };
+
+  const setMessage = (form, message = "", type = "error") => {
+    const messageElement = form.querySelector(".form-message");
+    if (messageElement) {
+      messageElement.textContent = message;
+      messageElement.classList.toggle("success", type === "success");
+    }
+  };
+
+  loginRegisterLink.addEventListener("click", (event) => {
+    event.preventDefault();
+    if (isLoggedIn) {
+      localStorage.removeItem("token");
+      window.location.reload();
+      return;
+    }
+    openModal(loginModal);
+  });
+
+  signupModal
+    .querySelector(".login-link")
+    .addEventListener("click", (event) => {
+      event.preventDefault();
+      setMessage(signupForm);
+      closeModal(signupModal);
+      openModal(loginModal);
+    });
+
+  loginModal.querySelector(".login-link").addEventListener("click", (event) => {
+    event.preventDefault();
+    setMessage(loginForm);
+    closeModal(loginModal);
+    openModal(signupModal);
+  });
+
+  closeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      closeModal(button.closest(".modal-overlay"));
+    });
+  });
+
+  signupForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setMessage(signupForm);
+    const inputs = signupForm.querySelectorAll("input");
+
+    try {
+      const response = await fetch("/api/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: inputs[0].value,
+          email: inputs[1].value,
+          password: inputs[2].value,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.message || "註冊失敗");
+      }
+      setMessage(signupForm, "註冊成功，請登入", "success");
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      closeModal(signupModal);
+      openModal(loginModal);
+    } catch (error) {
+      setMessage(signupForm, error.message);
+    }
+  });
+
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    setMessage(loginForm);
+    const inputs = loginForm.querySelectorAll("input");
+
+    try {
+      const response = await fetch("/api/user/auth", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inputs[0].value,
+          password: inputs[1].value,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.message || "帳號或密碼錯誤");
+      }
+      localStorage.setItem("token", result.token);
+      window.location.reload();
+    } catch (error) {
+      setMessage(loginForm, error.message);
+    }
+  });
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    openModal(loginModal);
+  }
+  checkLoginStatus(loginRegisterLink);
+}
+
+function updateAuthLink(link, loggedIn) {
+  isLoggedIn = loggedIn;
+  link.textContent = loggedIn ? "登出系統" : "登入/註冊";
+  link.href = loggedIn ? "#" : "#section-login-modal";
+}
+
+async function checkLoginStatus(loginRegisterLink) {
+  const token = localStorage.getItem("token");
+
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch("/api/user/auth", { headers });
+
+    const result = await response.json();
+
+    if (response.ok && result.data) {
+      currentUser = result.data;
+      updateAuthLink(loginRegisterLink, true);
+      return;
+    }
+
+    localStorage.removeItem("token");
+    currentUser = null;
+    updateAuthLink(loginRegisterLink, false);
+  } catch (error) {
+    console.error("檢查登入狀態失敗:", error);
+    currentUser = null;
+    updateAuthLink(loginRegisterLink, false);
+  }
+}
 
 async function loadAttractionDetail() {
   const attractionId = getAttractionIdFromUrl();

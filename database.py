@@ -23,6 +23,58 @@ def get_connection():
     return mysql.connector.connect(**DB_CONFIG)
 
 
+def create_member(name: str, email: str, password_hash: str) -> bool:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO members (name, email, password_hash) VALUES (%s, %s, %s)",
+            (name, email, password_hash),
+        )
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_member_by_email(email: str) -> dict[str, Any] | None:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id, name, email, password_hash FROM members WHERE email = %s",
+            (email,),
+        )
+        return cursor.fetchone()
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_member_by_id(member_id: int) -> dict[str, Any] | None:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT id, name, email FROM members WHERE id = %s",
+            (member_id,),
+        )
+        return cursor.fetchone()
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
 def normalize_json_field(value: Any) -> list[str]:
     if value is None:
         return []
@@ -83,7 +135,10 @@ def get_attractions(
 
     attractions = fetch_attraction_rows(sql, tuple(params))
     next_page = page + 1 if len(attractions) == per_page else None
-    return {"data": [attraction.to_dict(IMG_HOST) for attraction in attractions], "nextPage": next_page}
+    return {
+        "data": [attraction.to_dict(IMG_HOST) for attraction in attractions],
+        "nextPage": next_page,
+    }
 
 
 def get_attraction(attraction_id: int) -> dict[str, Any] | None:
@@ -100,7 +155,9 @@ def get_categories() -> dict[str, Any]:
     cursor = None
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT category FROM attractions WHERE category IS NOT NULL AND category <> '' ORDER BY category")
+        cursor.execute(
+            "SELECT DISTINCT category FROM attractions WHERE category IS NOT NULL AND category <> '' ORDER BY category"
+        )
         categories = [row[0] for row in cursor.fetchall()]
         return {"data": categories}
     finally:
