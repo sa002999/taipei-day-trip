@@ -12,14 +12,8 @@
         <div class="container header-container">
           <a href="/" class="logo">台北一日遊</a>
           <nav class="main-nav">
-            <a href="#" class="nav-link">預定行程</a>
-            <a
-              href="#section-login-modal"
-              class="nav-link"
-              id="login-register-link"
-            >
-              登入/註冊
-            </a>
+            <a href="/booking" class="nav-link booking-link">預定行程</a>
+            <a href="#section-login-modal" class="nav-link" id="login-register-link"> 登入/註冊 </a>
           </nav>
         </div>
       </header>
@@ -41,11 +35,7 @@
             </div>
             <div class="category-menu hidden"></div>
             <div class="search-input-wrapper">
-              <input
-                type="text"
-                class="search-input"
-                placeholder="輸入景點名稱查詢"
-              />
+              <input type="text" class="search-input" placeholder="輸入景點名稱查詢" />
             </div>
             <button class="search-btn">
               <img src="/static/img/search.png" alt="Search" />
@@ -93,34 +83,17 @@
           <h2 class="dialog-title">註冊會員帳號</h2>
           <form class="signup-form" action="#" method="POST">
             <div class="input-group">
-              <input
-                type="text"
-                placeholder="輸入姓名"
-                aria-label="輸入姓名"
-                required
-              />
+              <input type="text" placeholder="輸入姓名" aria-label="輸入姓名" required />
             </div>
             <div class="input-group">
-              <input
-                type="email"
-                placeholder="輸入電子郵件"
-                aria-label="輸入電子郵件"
-                required
-              />
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
             </div>
             <div class="input-group">
-              <input
-                type="password"
-                placeholder="輸入密碼"
-                aria-label="輸入密碼"
-                required
-              />
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
             </div>
             <button type="submit" class="submit-btn">註冊新帳戶</button>
             <p class="form-message" role="alert" aria-live="polite"></p>
-            <a href="#section-login-modal" class="login-link"
-              >已經有帳戶了？點此登入</a
-            >
+            <a href="#section-login-modal" class="login-link">已經有帳戶了？點此登入</a>
           </form>
         </div>
       </div>
@@ -136,26 +109,14 @@
           <h2 class="dialog-title">登入會員帳號</h2>
           <form class="login-form" action="#" method="POST">
             <div class="input-group">
-              <input
-                type="email"
-                placeholder="輸入電子郵件"
-                aria-label="輸入電子郵件"
-                required
-              />
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
             </div>
             <div class="input-group">
-              <input
-                type="password"
-                placeholder="輸入密碼"
-                aria-label="輸入密碼"
-                required
-              />
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
             </div>
             <button type="submit" class="submit-btn">登入帳戶</button>
             <p class="form-message" role="alert" aria-live="polite"></p>
-            <a href="#section-signup-modal" class="login-link">
-              還沒有帳戶？點此註冊
-            </a>
+            <a href="#section-signup-modal" class="login-link"> 還沒有帳戶？點此註冊 </a>
           </form>
         </div>
       </div>

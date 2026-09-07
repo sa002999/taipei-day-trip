@@ -12,14 +12,8 @@
         <div class="container header-container">
           <a href="/" class="logo">台北一日遊</a>
           <nav class="main-nav">
-            <a href="#" class="nav-link">預定行程</a>
-            <a
-              href="#section-login-modal"
-              class="nav-link"
-              id="login-register-link"
-            >
-              登入/註冊
-            </a>
+            <a href="/booking" class="nav-link booking-link">預定行程</a>
+            <a href="#section-login-modal" class="nav-link" id="login-register-link"> 登入/註冊 </a>
           </nav>
         </div>
       </header>
@@ -29,16 +23,8 @@
       <div class="container hero-inner">
         <div class="hero-image-container">
           <img src="/static/img/img.png" alt="平安鐘" class="hero-main-image" />
-          <img
-            src="/static/img/arrow left.png"
-            alt="Previous"
-            class="nav-arrow arrow-left"
-          />
-          <img
-            src="/static/img/arrow right.png"
-            alt="Next"
-            class="nav-arrow arrow-right"
-          />
+          <img src="/static/img/arrow left.png" alt="Previous" class="nav-arrow arrow-left" />
+          <img src="/static/img/arrow right.png" alt="Next" class="nav-arrow arrow-right" />
           <div class="indicator-bar">
             <div class="indicator active"></div>
             <div class="indicator"></div>
@@ -50,9 +36,7 @@
           <p class="profile-subtitle">公共藝術 at 忠孝復興</p>
           <div class="booking-form">
             <h2 class="form-title">訂購導覽行程</h2>
-            <p class="form-desc">
-              以此景點為中心的一日行程，帶您探索城市角落故事
-            </p>
+            <p class="form-desc">以此景點為中心的一日行程，帶您探索城市角落故事</p>
             <div class="form-group">
               <label>選擇日期：</label>
               <input type="date" placeholder="yyyy/mm/dd" />
@@ -61,53 +45,18 @@
               <label>選擇時間：</label>
               <div class="radio-group">
                 <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="time"
-                    value="morning"
-                    class="radio-input"
-                    checked
-                  />
-                  <svg
-                    class="radio-button"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 22 22"
-                  >
+                  <input type="radio" name="time" value="morning" class="radio-input" checked />
+                  <svg class="radio-button" width="22" height="22" viewBox="0 0 22 22">
                     <ellipse cx="11" cy="11" rx="11" ry="11" fill="white" />
-                    <ellipse
-                      cx="11"
-                      cy="11"
-                      rx="9"
-                      ry="9"
-                      fill="white"
-                      class="inner-ellipse"
-                    />
+                    <ellipse cx="11" cy="11" rx="9" ry="9" fill="white" class="inner-ellipse" />
                   </svg>
                   上半天
                 </label>
                 <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="time"
-                    value="afternoon"
-                    class="radio-input"
-                  />
-                  <svg
-                    class="radio-button"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 22 22"
-                  >
+                  <input type="radio" name="time" value="afternoon" class="radio-input" />
+                  <svg class="radio-button" width="22" height="22" viewBox="0 0 22 22">
                     <ellipse cx="11" cy="11" rx="11" ry="11" fill="white" />
-                    <ellipse
-                      cx="11"
-                      cy="11"
-                      rx="9"
-                      ry="9"
-                      fill="white"
-                      class="inner-ellipse"
-                    />
+                    <ellipse cx="11" cy="11" rx="9" ry="9" fill="white" class="inner-ellipse" />
                   </svg>
                   下半天
                 </label>
@@ -162,34 +111,17 @@
           <h2 class="dialog-title">註冊會員帳號</h2>
           <form class="signup-form" action="#" method="POST">
             <div class="input-group">
-              <input
-                type="text"
-                placeholder="輸入姓名"
-                aria-label="輸入姓名"
-                required
-              />
+              <input type="text" placeholder="輸入姓名" aria-label="輸入姓名" required />
             </div>
             <div class="input-group">
-              <input
-                type="email"
-                placeholder="輸入電子郵件"
-                aria-label="輸入電子郵件"
-                required
-              />
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
             </div>
             <div class="input-group">
-              <input
-                type="password"
-                placeholder="輸入密碼"
-                aria-label="輸入密碼"
-                required
-              />
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
             </div>
             <button type="submit" class="submit-btn">註冊新帳戶</button>
             <p class="form-message" role="alert" aria-live="polite"></p>
-            <a href="#section-login-modal" class="login-link"
-              >已經有帳戶了？點此登入</a
-            >
+            <a href="#section-login-modal" class="login-link">已經有帳戶了？點此登入</a>
           </form>
         </div>
       </div>
@@ -205,26 +137,14 @@
           <h2 class="dialog-title">登入會員帳號</h2>
           <form class="login-form" action="#" method="POST">
             <div class="input-group">
-              <input
-                type="email"
-                placeholder="輸入電子郵件"
-                aria-label="輸入電子郵件"
-                required
-              />
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
             </div>
             <div class="input-group">
-              <input
-                type="password"
-                placeholder="輸入密碼"
-                aria-label="輸入密碼"
-                required
-              />
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
             </div>
             <button type="submit" class="submit-btn">登入帳戶</button>
             <p class="form-message" role="alert" aria-live="polite"></p>
-            <a href="#section-signup-modal" class="login-link"
-              >還沒有帳戶？點此註冊</a
-            >
+            <a href="#section-signup-modal" class="login-link">還沒有帳戶？點此註冊</a>
           </form>
         </div>
       </div>

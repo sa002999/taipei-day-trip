@@ -186,3 +186,123 @@ def get_mrts() -> dict[str, Any]:
             cursor.close()
         if conn.is_connected():
             conn.close()
+
+
+def ensure_booking_table():
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS bookings (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                member_id INT NOT NULL,
+                attraction_id INT NOT NULL,
+                date DATE NOT NULL,
+                time VARCHAR(20) NOT NULL,
+                price INT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                UNIQUE KEY unique_member_booking (member_id),
+                KEY idx_member_id (member_id),
+                KEY idx_attraction_id (attraction_id)
+            )
+            """)
+        conn.commit()
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_booking_by_member(member_id: int) -> dict | None:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT b.member_id, b.attraction_id, b.date, b.time, b.price,
+                   a.name, a.address, a.images
+            FROM bookings b
+            LEFT JOIN attractions a ON a.id = b.attraction_id
+            WHERE b.member_id = %s
+            """,
+            (member_id,),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        images = json.loads(row["images"]) if row.get("images") else []
+        image_url = ""
+        if images:
+            path = images[0]
+            base = IMG_HOST.rstrip("/")
+            image_url = (
+                f"{base}{path}"
+                if base and path.startswith("/")
+                else f"{base}/{path}" if base else path
+            )
+
+        return {
+            "attraction": {
+                "id": row["attraction_id"],
+                "name": row["name"],
+                "address": row["address"],
+                "image": image_url,
+            },
+            "date": str(row["date"]),
+            "time": row["time"],
+            "price": int(row["price"]),
+        }
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def upsert_booking(
+    member_id: int, attraction_id: int, date: str, time: str, price: int
+) -> bool:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO bookings (member_id, attraction_id, date, time, price)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                attraction_id = VALUES(attraction_id),
+                date = VALUES(date),
+                time = VALUES(time),
+                price = VALUES(price),
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (member_id, attraction_id, date, time, price),
+        )
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def delete_booking_by_member(member_id: int) -> bool:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM bookings WHERE member_id = %s", (member_id,))
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()

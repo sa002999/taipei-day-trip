@@ -6,9 +6,14 @@ from database import (
     get_attractions,
     get_categories,
     get_mrts,
+    ensure_booking_table,
+    get_booking_by_member,
+    upsert_booking,
+    delete_booking_by_member,
 )
 from pathlib import Path
 from models.users import LoginRequest, RegisterRequest
+from models.bookings import BookingRequest
 from services.auth_service import (
     AuthConfigurationError,
     InvalidCredentialsError,
@@ -105,4 +110,82 @@ async def api_login_member(request: LoginRequest):
     except Exception:
         return JSONResponse(
             {"error": True, "message": "登入失敗，請稍後再試"}, status_code=500
+        )
+
+
+@app.get("/api/booking")
+async def api_get_booking(authorization: str | None = Header(default=None)):
+    member = get_current_member(authorization)
+    if member is None:
+        return JSONResponse(
+            {"error": True, "message": "未登入系統，拒絕存取"},
+            status_code=403,
+        )
+
+    ensure_booking_table()
+    booking = get_booking_by_member(member["id"])
+    return JSONResponse({"data": booking})
+
+
+@app.post("/api/booking")
+async def api_create_booking(
+    request: BookingRequest,
+    authorization: str | None = Header(default=None),
+):
+    member = get_current_member(authorization)
+    if member is None:
+        return JSONResponse(
+            {"error": True, "message": "未登入系統，拒絕存取"},
+            status_code=403,
+        )
+
+    try:
+        ensure_booking_table()
+
+        if request.attractionId <= 0 or not request.date or request.price <= 0:
+            raise ValueError("invalid booking input")
+        if request.time not in {"morning", "afternoon", "night"}:
+            raise ValueError("invalid booking time")
+
+        attraction = get_attraction(request.attractionId)
+        if attraction is None:
+            raise ValueError("attraction not found")
+
+        upsert_booking(
+            member["id"],
+            request.attractionId,
+            request.date,
+            request.time,
+            request.price,
+        )
+        return JSONResponse({"ok": True})
+    except ValueError:
+        return JSONResponse(
+            {"error": True, "message": "建立失敗，輸入不正確或其他原因"},
+            status_code=400,
+        )
+    except Exception:
+        return JSONResponse(
+            {"error": True, "message": "伺服器內部錯誤"},
+            status_code=500,
+        )
+
+
+@app.delete("/api/booking")
+async def api_delete_booking(authorization: str | None = Header(default=None)):
+    member = get_current_member(authorization)
+    if member is None:
+        return JSONResponse(
+            {"error": True, "message": "未登入系統，拒絕存取"},
+            status_code=403,
+        )
+
+    try:
+        ensure_booking_table()
+        delete_booking_by_member(member["id"])
+        return JSONResponse({"ok": True})
+    except Exception:
+        return JSONResponse(
+            {"error": True, "message": "伺服器內部錯誤"},
+            status_code=500,
         )
