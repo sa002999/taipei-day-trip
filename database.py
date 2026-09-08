@@ -1,5 +1,7 @@
 import json
 import os
+import secrets
+from datetime import datetime
 import mysql.connector
 from typing import Any
 from dotenv import load_dotenv
@@ -188,34 +190,6 @@ def get_mrts() -> dict[str, Any]:
             conn.close()
 
 
-def ensure_booking_table():
-    conn = get_connection()
-    cursor = None
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS bookings (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                member_id INT NOT NULL,
-                attraction_id INT NOT NULL,
-                date DATE NOT NULL,
-                time VARCHAR(20) NOT NULL,
-                price INT NOT NULL,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                UNIQUE KEY unique_member_booking (member_id),
-                KEY idx_member_id (member_id),
-                KEY idx_attraction_id (attraction_id)
-            )
-            """)
-        conn.commit()
-    finally:
-        if cursor is not None:
-            cursor.close()
-        if conn.is_connected():
-            conn.close()
-
-
 def get_booking_by_member(member_id: int) -> dict | None:
     conn = get_connection()
     cursor = None
@@ -301,6 +275,149 @@ def delete_booking_by_member(member_id: int) -> bool:
         cursor.execute("DELETE FROM bookings WHERE member_id = %s", (member_id,))
         conn.commit()
         return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def create_order(
+    member_id: int,
+    booking: dict[str, Any],
+    contact_name: str,
+    contact_email: str,
+    contact_phone: str,
+) -> dict[str, Any]:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        order_number = (
+            f"ORD{datetime.now().strftime('%Y%m%d')}{secrets.token_hex(4).upper()}"
+        )
+        cursor.execute(
+            """
+            INSERT INTO orders (
+                order_number, member_id, attraction_id, date, time, price,
+                contact_name, contact_email, contact_phone, status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, 'UNPAID')
+            """,
+            (
+                order_number,
+                member_id,
+                booking["attraction"]["id"],
+                booking["date"],
+                booking["time"],
+                booking["price"],
+                contact_name,
+                contact_email,
+                contact_phone,
+            ),
+        )
+        conn.commit()
+        return {"id": cursor.lastrowid, "order_number": order_number}
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def update_order_status(order_id: int, status: str) -> bool:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE orders SET status = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
+            (status, order_id),
+        )
+        conn.commit()
+        return cursor.rowcount == 1
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def create_payment(order_id: int, amount: int, response: dict[str, Any]) -> bool:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO payments (
+                order_id, status, message, amount, rec_trade_id,
+                bank_transaction_id, tappay_order_number, response_json
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                order_id,
+                int(response.get("status", -1)),
+                str(response.get("msg", "付款失敗"))[:255],
+                int(response.get("amount", amount) or amount),
+                response.get("rec_trade_id"),
+                response.get("bank_transaction_id"),
+                response.get("order_number"),
+                json.dumps(response, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_order_by_number(order_number: str, member_id: int) -> dict[str, Any] | None:
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute(
+            """
+            SELECT o.order_number, o.date, o.time, o.price, o.status,
+                   o.contact_name, o.contact_email, o.contact_phone,
+                     a.name AS attraction_name, a.address AS attraction_address,
+                     a.images AS attraction_images
+            FROM orders o
+            LEFT JOIN attractions a ON a.id = o.attraction_id
+            WHERE o.order_number = %s AND o.member_id = %s
+            """,
+            (order_number, member_id),
+        )
+        row = cursor.fetchone()
+        if row is None:
+            return None
+
+        images = normalize_json_field(row["attraction_images"])
+        image_url = ""
+        if images:
+            path = images[0]
+            base = IMG_HOST.rstrip("/")
+            image_url = (
+                f"{base}{path}"
+                if base and path.startswith("/")
+                else f"{base}/{path}" if base else path
+            )
+
+        return {
+            "orderNumber": row["order_number"],
+            "status": row["status"],
+            "attraction": {
+                "name": row["attraction_name"],
+                "address": row["attraction_address"],
+                "image": image_url,
+            },
+            "date": str(row["date"]),
+            "time": row["time"],
+            "price": int(row["price"]),
+        }
     finally:
         if cursor is not None:
             cursor.close()

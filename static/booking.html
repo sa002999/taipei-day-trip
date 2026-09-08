@@ -41,15 +41,15 @@
         <h3 class="section-title">您的聯絡資訊</h3>
         <div class="form-group">
           <label for="contact-name">聯絡姓名：</label>
-          <input type="text" id="contact-name" value="" />
+          <input type="text" id="contact-name" value="" autocomplete="name" required />
         </div>
         <div class="form-group">
           <label for="contact-email">連絡信箱：</label>
-          <input type="email" id="contact-email" value="" />
+          <input type="email" id="contact-email" value="" autocomplete="email" required />
         </div>
         <div class="form-group">
           <label for="contact-phone">手機號碼：</label>
-          <input type="tel" id="contact-phone" value="" />
+          <input type="tel" id="contact-phone" value="" autocomplete="tel" inputmode="tel" pattern="09[0-9]{8}" maxlength="10" required />
         </div>
         <p class="form-notice">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。</p>
       </div>
@@ -64,15 +64,15 @@
         <h3 class="section-title">信用卡付款資訊</h3>
         <div class="form-group">
           <label for="card-number">卡片號碼：</label>
-          <input type="text" id="card-number" placeholder="**** **** **** ****" />
+          <div class="tpfield" id="card-number"></div>
         </div>
         <div class="form-group">
           <label for="card-expiry">過期時間：</label>
-          <input type="text" id="card-expiry" placeholder="MM / YY" />
+          <div class="tpfield" id="card-expiration-date"></div>
         </div>
         <div class="form-group">
-          <label for="card-cvv">驗證密碼：</label>
-          <input type="text" id="card-cvv" placeholder="CVV" />
+          <label for="card-cvv">安全碼：</label>
+          <div class="tpfield" id="card-ccv"></div>
         </div>
       </div>
     </section>
@@ -85,6 +85,7 @@
       <div class="inner-container summary-container">
         <div class="total-price"></div>
         <button class="btn-confirm">確認訂購並付款</button>
+        <p class="payment-message" role="status" aria-live="polite"></p>
       </div>
     </section>
 
@@ -145,6 +146,14 @@
       </div>
     </section>
 
+    <script
+      src="https://js.tappaysdk.com/sdk/tpdirect/v5.25.0"
+      type="text/javascript"
+      integrity="sha256-WwF2exxNABEFOnxgGlHUdXHAM49O/UbVK0xDAZhrxbM="
+      crossorigin="anonymous"></script>
+    <script>
+      TPDirect.setupSDK(171041, "app_9LlSvnbs9zVgru5Q9W6o6BFql8QYRVLMhZEJmQ9YA1tKstqteI8iwEPlLqr9", "sandbox");
+    </script>
     <script src="/static/script.js"></script>
   </body>
 </html>

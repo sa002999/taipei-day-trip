@@ -11,6 +11,11 @@ let currentUser = null;
 document.addEventListener("DOMContentLoaded", () => {
   initAuthModal();
 
+  if (document.querySelector("#thankyou-details")) {
+    initThankyouPage();
+    return;
+  }
+
   // 檢查是否為 booking 頁面
   const isBookingPage = document.querySelector("#booking-details");
   if (isBookingPage) {
@@ -713,6 +718,7 @@ async function initBookingPage() {
 
   // 取得預訂紀錄
   await loadBookingData();
+  initOrderPayment();
 }
 
 async function loadBookingData() {
@@ -906,5 +912,275 @@ async function handleDeleteBooking() {
   } catch (error) {
     alert("刪除失敗，請稍後再試");
     console.error("刪除預約失敗:", error);
+  }
+}
+
+// 必填 CCV Example
+var fields = {
+  number: {
+    // css selector
+    element: "#card-number",
+    placeholder: "**** **** **** ****",
+  },
+  expirationDate: {
+    // DOM object
+    element: document.getElementById("card-expiration-date"),
+    placeholder: "MM / YY",
+  },
+  ccv: {
+    element: "#card-ccv",
+    placeholder: "後三碼",
+  },
+};
+
+TPDirect.card.setup({
+  fields: fields,
+  styles: {
+    // Style all elements
+    input: {
+      color: "gray",
+    },
+    // style valid state
+    ".valid": {
+      color: "green",
+    },
+    // style invalid state
+    ".invalid": {
+      color: "red",
+    },
+    // Media queries
+    // Note that these apply to the iframe, not the root window.
+    "@media screen and (max-width: 400px)": {
+      input: {
+        color: "orange",
+      },
+    },
+  },
+  // 此設定會顯示卡號輸入正確後，會顯示前六後四碼信用卡卡號
+  isMaskCreditCardNumber: true,
+  maskCreditCardNumberRange: {
+    beginIndex: 6,
+    endIndex: 11,
+  },
+});
+
+TPDirect.card.onUpdate(function (update) {
+  console.log("canGetPrime:", update.canGetPrime);
+  const confirmButton = document.querySelector(".btn-confirm");
+  if (confirmButton) {
+    confirmButton.disabled = !update.canGetPrime;
+  }
+
+  // number 欄位是錯誤的
+  if (update.status.number === 2) {
+    setNumberFormGroupToError("#card-number");
+  } else if (update.status.number === 0) {
+    setNumberFormGroupToSuccess("#card-number");
+  } else {
+    setNumberFormGroupToNormal("#card-number");
+  }
+
+  if (update.status.expiry === 2) {
+    setNumberFormGroupToError("#card-expiration-date");
+  } else if (update.status.expiry === 0) {
+    setNumberFormGroupToSuccess("#card-expiration-date");
+  } else {
+    setNumberFormGroupToNormal("#card-expiration-date");
+  }
+
+  if (update.status.ccv === 2) {
+    setNumberFormGroupToError("#card-ccv");
+  } else if (update.status.ccv === 0) {
+    setNumberFormGroupToSuccess("#card-ccv");
+  } else {
+    setNumberFormGroupToNormal("#card-ccv");
+  }
+});
+
+function setNumberFormGroupToError(selector) {
+  const field = document.querySelector(selector);
+  const formGroup = field?.closest(".form-group");
+
+  if (!formGroup) return;
+
+  formGroup.classList.add("has-error");
+  formGroup.classList.remove("has-success");
+}
+
+function setNumberFormGroupToSuccess(selector) {
+  const field = document.querySelector(selector);
+  const formGroup = field?.closest(".form-group");
+
+  if (!formGroup) return;
+
+  formGroup.classList.add("has-success");
+  formGroup.classList.remove("has-error");
+}
+
+function setNumberFormGroupToNormal(selector) {
+  const field = document.querySelector(selector);
+  const formGroup = field?.closest(".form-group");
+
+  if (!formGroup) return;
+
+  formGroup.classList.remove("has-error", "has-success");
+}
+
+function showPaymentMessage(message, type = "error") {
+  const messageElement = document.querySelector(".payment-message");
+  if (!messageElement) return;
+
+  messageElement.textContent = message;
+  messageElement.classList.toggle("success", type === "success");
+}
+
+function getContactFormData() {
+  const nameInput = document.querySelector("#contact-name");
+  const emailInput = document.querySelector("#contact-email");
+  const phoneInput = document.querySelector("#contact-phone");
+  const name = nameInput?.value.trim() || "";
+  const email = emailInput?.value.trim() || "";
+  const phone = phoneInput?.value.trim() || "";
+
+  if (!name) return { error: "請輸入聯絡姓名" };
+  if (!emailInput?.checkValidity()) return { error: "請輸入正確的 Email" };
+  if (!/^09\d{8}$/.test(phone)) return { error: "請輸入 09 開頭的 10 碼手機號碼" };
+
+  return { name, email, phone };
+}
+
+function getPrime() {
+  return new Promise((resolve, reject) => {
+    TPDirect.card.getPrime((result) => {
+      if (result.status !== 0) {
+        reject(new Error(result.msg || "取得付款資訊失敗"));
+        return;
+      }
+      resolve(result.card.prime);
+    });
+  });
+}
+
+async function onSubmit(event) {
+  event?.preventDefault();
+
+  const confirmButton = document.querySelector(".btn-confirm");
+  if (!confirmButton || confirmButton.disabled) return;
+
+  const contact = getContactFormData();
+  if (contact.error) {
+    showPaymentMessage(contact.error);
+    return;
+  }
+
+  let tappayStatus;
+  try {
+    tappayStatus = TPDirect.card.getTappayFieldsStatus();
+  } catch (error) {
+    showPaymentMessage("信用卡欄位尚未準備完成");
+    return;
+  }
+
+  if (!tappayStatus.canGetPrime) {
+    showPaymentMessage("請完整填寫正確的信用卡資訊");
+    return;
+  }
+
+  confirmButton.disabled = true;
+  showPaymentMessage("付款處理中...");
+
+  try {
+    const prime = await getPrime();
+    const token = localStorage.getItem("token");
+    const response = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        prime,
+        contactName: contact.name,
+        contactEmail: contact.email,
+        contactPhone: contact.phone,
+      }),
+    });
+    const result = await response.json();
+
+    if (!response.ok && !result.orderNumber) {
+      throw new Error(result.message || "建立訂單失敗");
+    }
+
+    const orderMessage = result.orderNumber ? `訂單編號：${result.orderNumber}` : "";
+    if (result.paymentStatus === "PAID") {
+      window.location.href = `/thankyou?number=${encodeURIComponent(result.orderNumber)}`;
+      return;
+    }
+
+    showPaymentMessage(`付款失敗，${orderMessage}。${result.message || "請稍後再試"}`);
+  } catch (error) {
+    showPaymentMessage(error.message || "付款失敗，請稍後再試");
+  } finally {
+    if (!document.querySelector(".payment-message")?.classList.contains("success")) {
+      confirmButton.disabled = false;
+    }
+  }
+}
+
+function initOrderPayment() {
+  const confirmButton = document.querySelector(".btn-confirm");
+  if (!confirmButton) return;
+
+  confirmButton.addEventListener("click", onSubmit);
+  confirmButton.disabled = true;
+}
+
+async function initThankyouPage() {
+  const orderNumber = new URLSearchParams(window.location.search).get("number");
+  const messageElement = document.querySelector(".thankyou-message");
+  const detailElement = document.querySelector(".order-details");
+
+  if (!orderNumber) {
+    showThankyouError("找不到訂單編號");
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(`/api/orders/${encodeURIComponent(orderNumber)}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    const result = await response.json();
+    if (!response.ok || !result.data) {
+      throw new Error(result.message || "找不到訂單");
+    }
+
+    const order = result.data;
+    if (messageElement) {
+      messageElement.textContent = `感謝您的訂購，訂單編號為：${order.orderNumber}`;
+    }
+    if (detailElement) {
+      const timeText = order.time === "morning" ? "早上 9 點到下午 4 點" : "下午 1 點到晚上 8 點";
+      detailElement.innerHTML = `
+        <img class="order-detail-image" src="${escapeHtml(order.attraction.image || "")}" alt="${escapeHtml(order.attraction.name)}" />
+        <div class="order-detail-row"><span>景點：</span><strong>${escapeHtml(order.attraction.name)}</strong></div>
+        <div class="order-detail-row"><span>日期：</span><strong>${escapeHtml(order.date)}</strong></div>
+        <div class="order-detail-row"><span>時間：</span><strong>${escapeHtml(timeText)}</strong></div>
+        <div class="order-detail-row"><span>費用：</span><strong>新台幣 ${formatPriceWithComma(order.price)} 元</strong></div>
+        <div class="order-detail-row"><span>地點：</span><strong>${escapeHtml(order.attraction.address)}</strong></div>
+        <div class="order-detail-row"><span>付款狀態：</span><strong>已付款</strong></div>
+      `;
+    }
+  } catch (error) {
+    showThankyouError(error.message || "無法載入訂單資訊");
+  }
+}
+
+function showThankyouError(message) {
+  const messageElement = document.querySelector(".thankyou-message");
+  const detailElement = document.querySelector(".order-details");
+  if (messageElement) messageElement.textContent = message;
+  if (detailElement) {
+    detailElement.innerHTML = '<a class="thankyou-home-link" href="/">回到首頁</a>';
   }
 }

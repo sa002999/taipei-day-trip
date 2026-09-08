@@ -63,6 +63,55 @@ button {
   color: #448899;
 }
 
+.thankyou-section {
+  min-height: calc(100vh - 174px);
+  padding: 80px 20px;
+}
+.thankyou-container {
+  max-width: 760px;
+}
+.thankyou-message {
+  margin: 0 0 32px;
+  color: #448899;
+  font-size: 24px;
+  font-weight: 700;
+}
+.order-details {
+  border-top: 1px solid #e8e8e8;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 24px 0;
+}
+.order-detail-image {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  height: 220px;
+  margin-bottom: 24px;
+  border-radius: 5px;
+  object-fit: cover;
+}
+.order-detail-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+.order-detail-row:last-child {
+  margin-bottom: 0;
+}
+.order-detail-row span {
+  width: 96px;
+  color: #666666;
+  flex-shrink: 0;
+}
+.order-detail-row strong {
+  color: #333333;
+}
+.thankyou-home-link {
+  color: #448899;
+  font-size: 16px;
+}
+
 .hero-section {
   position: relative;
   height: 320px;
