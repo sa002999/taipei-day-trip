@@ -1,11 +1,159 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Booking</title>
-</head>
-<body>
-  
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/static/booking.css" />
+    <title>Booking</title>
+  </head>
+  <body>
+    <section id="section-header">
+      <header class="site-header">
+        <div class="container header-container">
+          <a href="/" class="logo">台北一日遊</a>
+          <nav class="main-nav">
+            <a href="/booking" class="nav-link booking-link">預定行程</a>
+            <a href="#section-login-modal" class="nav-link" id="login-register-link">登入/註冊</a>
+          </nav>
+        </div>
+      </header>
+    </section>
+
+    <section id="booking-details" class="booking-section">
+      <div class="inner-container">
+        <div class="greeting"></div>
+        <div class="booking-card">
+          <img class="booking-img" />
+          <div class="booking-info"></div>
+          <button class="delete-btn" aria-label="刪除行程">
+            <img src="/static/img/icon_delete.png" alt="Delete" />
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="separator"></div>
+    </div>
+
+    <section id="contact-info" class="form-section">
+      <div class="inner-container">
+        <h3 class="section-title">您的聯絡資訊</h3>
+        <div class="form-group">
+          <label for="contact-name">聯絡姓名：</label>
+          <input type="text" id="contact-name" value="" autocomplete="name" required />
+        </div>
+        <div class="form-group">
+          <label for="contact-email">連絡信箱：</label>
+          <input type="email" id="contact-email" value="" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label for="contact-phone">手機號碼：</label>
+          <input type="tel" id="contact-phone" value="" autocomplete="tel" inputmode="tel" pattern="09[0-9]{8}" maxlength="10" required />
+        </div>
+        <p class="form-notice">請保持手機暢通，準時到達，導覽人員將用手機與您聯繫，務必留下正確的聯絡方式。</p>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="separator"></div>
+    </div>
+
+    <section id="payment-info" class="form-section">
+      <div class="inner-container">
+        <h3 class="section-title">信用卡付款資訊</h3>
+        <div class="form-group">
+          <label for="card-number">卡片號碼：</label>
+          <div class="tpfield" id="card-number"></div>
+        </div>
+        <div class="form-group">
+          <label for="card-expiry">過期時間：</label>
+          <div class="tpfield" id="card-expiration-date"></div>
+        </div>
+        <div class="form-group">
+          <label for="card-cvv">安全碼：</label>
+          <div class="tpfield" id="card-ccv"></div>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="separator"></div>
+    </div>
+
+    <section id="checkout-summary" class="summary-section">
+      <div class="inner-container summary-container">
+        <div class="total-price"></div>
+        <button class="btn-confirm">確認訂購並付款</button>
+        <p class="payment-message" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="section-footer">
+      <footer class="footer">
+        <div class="container">
+          <p>COPYRIGHT © 2021 台北一日遊</p>
+        </div>
+      </footer>
+    </section>
+
+    <section id="section-signup-modal" class="modal-overlay">
+      <div class="dialog-box">
+        <div class="decorator-bar"></div>
+        <button class="close-btn" aria-label="關閉">
+          <img src="/static/img/icon_close.png" alt="關閉" />
+        </button>
+        <div class="dialog-content">
+          <h2 class="dialog-title">註冊會員帳號</h2>
+          <form class="signup-form" action="#" method="POST">
+            <div class="input-group">
+              <input type="text" placeholder="輸入姓名" aria-label="輸入姓名" required />
+            </div>
+            <div class="input-group">
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
+            </div>
+            <div class="input-group">
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
+            </div>
+            <button type="submit" class="submit-btn">註冊新帳戶</button>
+            <p class="form-message" role="alert" aria-live="polite"></p>
+            <a href="#section-login-modal" class="login-link">已經有帳戶了？點此登入</a>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-login-modal" class="modal-overlay">
+      <div class="dialog-box">
+        <div class="decorator-bar"></div>
+        <button class="close-btn" aria-label="關閉">
+          <img src="/static/img/icon_close.png" alt="關閉" />
+        </button>
+        <div class="dialog-content">
+          <h2 class="dialog-title">登入會員帳號</h2>
+          <form class="login-form" action="#" method="POST">
+            <div class="input-group">
+              <input type="email" placeholder="輸入電子郵件" aria-label="輸入電子郵件" required />
+            </div>
+            <div class="input-group">
+              <input type="password" placeholder="輸入密碼" aria-label="輸入密碼" required />
+            </div>
+            <button type="submit" class="submit-btn">登入帳戶</button>
+            <p class="form-message" role="alert" aria-live="polite"></p>
+            <a href="#section-signup-modal" class="login-link">還沒有帳戶？點此註冊</a>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <script
+      src="https://js.tappaysdk.com/sdk/tpdirect/v5.25.0"
+      type="text/javascript"
+      integrity="sha256-WwF2exxNABEFOnxgGlHUdXHAM49O/UbVK0xDAZhrxbM="
+      crossorigin="anonymous"></script>
+    <script>
+      TPDirect.setupSDK(171041, "app_9LlSvnbs9zVgru5Q9W6o6BFql8QYRVLMhZEJmQ9YA1tKstqteI8iwEPlLqr9", "sandbox");
+    </script>
+    <script src="/static/script.js"></script>
+  </body>
 </html>
