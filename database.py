@@ -1,4 +1,5 @@
 import json
+import hashlib
 import os
 import secrets
 from datetime import datetime
@@ -75,6 +76,51 @@ def get_member_by_id(member_id: int) -> dict[str, Any] | None:
             cursor.close()
         if conn.is_connected():
             conn.close()
+
+
+def create_or_update_member_token(member_id: int, token: str) -> bool:
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO members_token (member_id, token_hash)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash)
+            """,
+            (member_id, token_hash),
+        )
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_member_id_by_token(raw_token: str) -> int | None:
+    """
+    當 MCP Server 收到 Bearer Token 時，將其轉為 SHA256 後至資料庫查詢對應的 member_id。
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+        cursor.execute(
+            "SELECT member_id FROM members_token WHERE token_hash = %s", (token_hash,)
+        )
+
+        result = cursor.fetchone()
+        return result["member_id"] if result else None
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def normalize_json_field(value: Any) -> list[str]:

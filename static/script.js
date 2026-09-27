@@ -7,11 +7,21 @@ let selectedCategory = "全部分類";
 let currentKeyword = "";
 let isLoggedIn = false;
 let currentUser = null;
+let loginStatusPromise = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   initAuthModal();
 
-  if (document.querySelector("#thankyou-details")) {
+  // 檢查是否為 member 頁面
+  const isMemberPage = document.querySelector("#member-details");
+  if (isMemberPage) {
+    initMemberPage();
+    return;
+  }
+
+  // 檢查是否為 thankyou 頁面
+  const isThankyouPage = document.querySelector("#thankyou-details");
+  if (isThankyouPage) {
     initThankyouPage();
     return;
   }
@@ -85,13 +95,10 @@ function initAuthModal() {
   });
 
   loginRegisterLink.addEventListener("click", (event) => {
-    event.preventDefault();
-    if (isLoggedIn) {
-      localStorage.removeItem("token");
-      window.location.reload();
-      return;
+    if (!isLoggedIn) {
+      event.preventDefault();
+      openModal(loginModal);
     }
-    openModal(loginModal);
   });
 
   signupModal.querySelector(".login-link").addEventListener("click", (event) => {
@@ -171,37 +178,50 @@ function initAuthModal() {
   if (!token) {
     openModal(loginModal);
   }
+
   checkLoginStatus(loginRegisterLink);
 }
 
 function updateAuthLink(link, loggedIn) {
   isLoggedIn = loggedIn;
-  link.textContent = loggedIn ? "登出系統" : "登入/註冊";
-  link.href = loggedIn ? "#" : "#section-login-modal";
+  link.textContent = loggedIn ? "會員中心" : "登入/註冊";
+  link.href = loggedIn ? "/member" : "#section-login-modal";
 }
 
-async function checkLoginStatus(loginRegisterLink) {
-  const token = localStorage.getItem("token");
+async function checkLoginStatus(loginRegisterLink = null) {
+  if (!loginStatusPromise) {
+    loginStatusPromise = (async () => {
+      const token = localStorage.getItem("token");
 
-  try {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await fetch("/api/user/auth", { headers });
-    const result = await response.json();
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await fetch("/api/user/auth", { headers });
+        const result = await response.json();
 
-    if (response.ok && result.data) {
-      currentUser = result.data;
-      updateAuthLink(loginRegisterLink, true);
-      return;
-    }
+        if (response.ok && result.data) {
+          currentUser = result.data;
+          isLoggedIn = true;
+          return true;
+        }
 
-    localStorage.removeItem("token");
-    currentUser = null;
-    updateAuthLink(loginRegisterLink, false);
-  } catch (error) {
-    console.error("檢查登入狀態失敗:", error);
-    currentUser = null;
-    updateAuthLink(loginRegisterLink, false);
+        localStorage.removeItem("token");
+        currentUser = null;
+        isLoggedIn = false;
+        return false;
+      } catch (error) {
+        console.error("檢查登入狀態失敗:", error);
+        currentUser = null;
+        isLoggedIn = false;
+        return false;
+      }
+    })();
   }
+
+  const loggedIn = await loginStatusPromise;
+  if (loginRegisterLink) {
+    updateAuthLink(loginRegisterLink, loggedIn);
+  }
+  return loggedIn;
 }
 
 async function loadAttractionDetail() {
@@ -694,24 +714,10 @@ function initImageCarousel(images = []) {
 
 // Booking page initialization
 async function initBookingPage() {
-  const token = localStorage.getItem("token");
+  const loginRegisterLink = document.querySelector("#login-register-link");
+  const loggedIn = await checkLoginStatus(loginRegisterLink);
 
-  // 驗證登入狀態
-  try {
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await fetch("/api/user/auth", { headers });
-    const result = await response.json();
-
-    if (!response.ok || !result.data) {
-      // 未登入，重定向至首頁
-      window.location.href = "/";
-      return;
-    }
-
-    currentUser = result.data;
-    updateAuthLink(document.querySelector("#login-register-link"), true);
-  } catch (error) {
-    console.error("檢查登入狀態失敗:", error);
+  if (!loggedIn) {
     window.location.href = "/";
     return;
   }
@@ -1183,4 +1189,72 @@ function showThankyouError(message) {
   if (detailElement) {
     detailElement.innerHTML = '<a class="thankyou-home-link" href="/">回到首頁</a>';
   }
+}
+
+async function initMemberPage() {
+  const loggedIn = await checkLoginStatus();
+  if (!loggedIn) {
+    window.location.href = "/";
+    return;
+  }
+
+  const greeting = document.querySelector(".greeting");
+  const hostUrlElement = document.querySelector("#host-url");
+  const bearerTokenElement = document.querySelector("#bearer-token");
+  const tokenButton = document.querySelector("#token-btn");
+  const logoutButton = document.querySelector("#logout-btn");
+
+  // 更新問候語
+  if (greeting && currentUser) {
+    greeting.textContent = `您好，${escapeHtml(currentUser.name)}：`;
+  }
+
+  if (hostUrlElement) {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/member-config", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.message || "無法載入 MCP Host URL");
+      }
+      hostUrlElement.textContent = result.hostUrl;
+    } catch (error) {
+      hostUrlElement.textContent = error.message;
+    }
+  }
+  if (bearerTokenElement) {
+    bearerTokenElement.textContent = "尚未產生金鑰";
+  }
+
+  tokenButton?.addEventListener("click", async () => {
+    tokenButton.disabled = true;
+    tokenButton.textContent = "產生中...";
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("/api/token", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const result = await response.json();
+      if (!response.ok || result.error) {
+        throw new Error(result.message || "MCP 金鑰產生失敗");
+      }
+
+      if (hostUrlElement) hostUrlElement.textContent = result.hostUrl;
+      if (bearerTokenElement) bearerTokenElement.textContent = result.token;
+    } catch (error) {
+      if (bearerTokenElement) bearerTokenElement.textContent = error.message;
+    } finally {
+      tokenButton.disabled = false;
+      tokenButton.textContent = "產生/更新金鑰";
+    }
+  });
+
+  logoutButton?.addEventListener("click", () => {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+  });
 }

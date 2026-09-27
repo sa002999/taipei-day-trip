@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/static/style.css" />
-    <title>Thank You</title>
+    <title>Member</title>
   </head>
   <body>
     <section id="section-header">
@@ -13,15 +13,28 @@
           <a href="/" class="logo">台北一日遊</a>
           <nav class="main-nav">
             <a href="/booking" class="nav-link booking-link">預定行程</a>
-            <a href="#section-login-modal" class="nav-link" id="login-register-link"></a>
+            <a href="/member" class="nav-link"> 會員中心 </a>
           </nav>
         </div>
       </header>
     </section>
-    <section id="thankyou-details" class="thankyou-section">
-      <div class="container thankyou-container">
-        <h1 class="thankyou-message">載入訂單資訊中...</h1>
-        <div class="order-details" aria-live="polite"></div>
+    <section id="member-details" class="member-section">
+      <div class="container member-container">
+        <h2 class="greeting">會員中心</h2>
+        <div class="separator"></div>
+        <div class="mcp-info">
+          <h2>AI工具整合</h2>
+          <p>MCP伺服器設定</p>
+          <ul>
+            <li>Host URL</li>
+            <p id="host-url">載入中...</p>
+            <li>Bear Token</li>
+            <p id="bearer-token">尚未產生金鑰</p>
+          </ul>
+        </div>
+        <button class="token-btn" id="token-btn">產生/更新金鑰</button>
+        <div class="separator"></div>
+        <button class="logout-btn" id="logout-btn">登出會員</button>
       </div>
     </section>
     <section id="section-footer">
