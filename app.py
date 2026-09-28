@@ -397,7 +397,9 @@ def search_taipei_attractions(keyword: str = "") -> dict:
                 {
                     "id": attraction["id"],
                     "name": attraction["name"],
+                    "category": attraction["category"],
                     "description": attraction.get("description") or "",
+                    "mrt": attraction.get("mrt") or "",
                 }
                 for attraction in result["data"]
             ]

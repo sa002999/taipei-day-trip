@@ -509,6 +509,13 @@ async function loadAttractions(clear = false) {
     console.error("Attractions load error:", error);
   } finally {
     isLoading = false;
+    const sentinel = document.querySelector(".load-more-sentinel");
+    if (hasMore && sentinel) {
+      const { bottom } = sentinel.getBoundingClientRect();
+      if (bottom <= window.innerHeight) {
+        requestAnimationFrame(() => loadAttractions());
+      }
+    }
   }
 }
 

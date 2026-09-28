@@ -3,10 +3,10 @@ import hashlib
 import os
 import secrets
 from datetime import datetime
-import mysql.connector
 from typing import Any
 from dotenv import load_dotenv
 from mysql.connector import Error
+from mysql.connector import pooling
 from models.attractions import Attraction
 
 load_dotenv()
@@ -20,10 +20,33 @@ DB_CONFIG = {
 }
 
 IMG_HOST = os.getenv("IMG_HOST", "")
+DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
+
+connection_pool = None
+connection_pool_error = None
+
+try:
+    connection_pool = pooling.MySQLConnectionPool(
+        pool_name="taipei_day_trip",
+        pool_size=DB_POOL_SIZE,
+        pool_reset_session=True,  # 當連線歸還時，自動重設 session 狀態
+        **DB_CONFIG,
+    )
+except Error as e:
+    connection_pool_error = e
+    print(f"建立連線池失敗: {e}")
 
 
 def get_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    if connection_pool is None:
+        raise RuntimeError("資料庫連線池尚未建立") from connection_pool_error
+
+    connection = connection_pool.get_connection()
+
+    # 拿出來時檢查連線是否還活著，如果死了就自動重連
+    connection.ping(reconnect=True, attempts=3, delay=2)
+
+    return connection
 
 
 def create_member(name: str, email: str, password_hash: str) -> bool:
