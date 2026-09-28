@@ -1,7 +1,13 @@
+from fastmcp import FastMCP, Context
+from fastmcp.server.auth import AccessToken, TokenVerifier
+from fastmcp.server.dependencies import get_access_token
 from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 import re
+import os
+import secrets
+from datetime import datetime
 from database import (
     create_order,
     create_payment,
@@ -14,6 +20,8 @@ from database import (
     upsert_booking,
     delete_booking_by_member,
     update_order_status,
+    create_or_update_member_token,
+    get_member_id_by_token,
 )
 from pathlib import Path
 from models.users import LoginRequest, RegisterRequest
@@ -60,6 +68,11 @@ async def thankyou(request: Request):
     return FileResponse("./static/thankyou.html", media_type="text/html")
 
 
+@app.get("/member", include_in_schema=False)
+async def member(request: Request):
+    return FileResponse("./static/member.html", media_type="text/html")
+
+
 @app.get("/api/attractions")
 async def api_get_attractions(
     category: str | None = None,
@@ -103,6 +116,45 @@ async def api_register_member(request: RegisterRequest):
 @app.get("/api/user/auth")
 async def api_get_current_member(authorization: str | None = Header(default=None)):
     return JSONResponse({"data": get_current_member(authorization)})
+
+
+@app.post("/api/token")
+async def api_create_member_token(
+    request: Request,
+    authorization: str | None = Header(default=None),
+):
+    member = get_current_member(authorization)
+    if member is None:
+        return JSONResponse(
+            {"error": True, "message": "未登入系統，拒絕存取"},
+            status_code=403,
+        )
+
+    token = secrets.token_urlsafe(32)
+    try:
+        create_or_update_member_token(member["id"], token)
+        app_url = os.getenv("APP_URL", str(request.base_url).rstrip("/"))
+        return JSONResponse({"hostUrl": f"{app_url.rstrip('/')}/mcp", "token": token})
+    except Exception:
+        return JSONResponse(
+            {"error": True, "message": "MCP 金鑰產生失敗，請稍後再試"},
+            status_code=500,
+        )
+
+
+@app.get("/api/member-config")
+async def api_get_member_config(
+    request: Request,
+    authorization: str | None = Header(default=None),
+):
+    if get_current_member(authorization) is None:
+        return JSONResponse(
+            {"error": True, "message": "未登入系統，拒絕存取"},
+            status_code=403,
+        )
+
+    app_url = os.getenv("APP_URL", str(request.base_url).rstrip("/"))
+    return JSONResponse({"hostUrl": f"{app_url.rstrip('/')}/mcp"})
 
 
 @app.put("/api/user/auth")
@@ -305,3 +357,94 @@ async def api_get_order(
         )
 
     return JSONResponse({"data": order})
+
+
+# 驗證傳入MCP Server的token是否有效，並轉換成可用的AccessToken
+class MemberTokenVerifier(TokenVerifier):
+    async def verify_token(self, token: str) -> AccessToken | None:
+        member_id = get_member_id_by_token(token)
+        if member_id is None:
+            return None
+
+        return AccessToken(
+            token=token,
+            client_id=str(member_id),
+            scopes=[],
+            expires_at=None,
+            resource=None,
+            subject=str(member_id),
+            claims={"member_id": member_id},
+        )
+
+
+# 初始化 FastMCP 伺服器，驗證機制指定給自定義的驗證函式: MemberTokenVerifier
+mcp = FastMCP(
+    name="台北⼀⽇遊",
+    auth=MemberTokenVerifier(),
+)
+
+
+# 建立專屬「搜尋台北市景點」的 MCP Tool
+@mcp.tool(
+    name="search",
+    description="Search for tourist attractions in Taipei City for a day trip using keywords and MRT station names.",
+)
+def search_taipei_attractions(keyword: str = "") -> dict:
+    try:
+        result = get_attractions(keyword=keyword.strip() or None, page=1, per_page=1000)
+        return {
+            "data": [
+                {
+                    "id": attraction["id"],
+                    "name": attraction["name"],
+                    "category": attraction["category"],
+                    "description": attraction.get("description") or "",
+                    "mrt": attraction.get("mrt") or "",
+                }
+                for attraction in result["data"]
+            ]
+        }
+    except Exception:
+        return {"error": True}
+
+
+# 建立專屬「預定景點導覽⾏程」的 MCP Tool
+@mcp.tool(
+    name="booking",
+    description="Book a guided tour of the attraction based on its attraction number, date, time, and price.",
+)
+def add_taipei_attraction_booking(
+    attraction_id: int,
+    date: str,
+    time: str,
+    price: int,
+) -> dict:
+    try:
+        access_token = get_access_token()
+        member_id = access_token.claims.get("member_id") if access_token else None
+        if not isinstance(member_id, int):
+            return {"error": True}
+
+        booking_date = datetime.strptime(date, "%Y-%m-%d").date()
+        if booking_date < datetime.now().date():
+            return {"error": True}
+        if time not in {"morning", "afternoon"} or price <= 0:
+            return {"error": True}
+        if get_attraction(attraction_id) is None:
+            return {"error": True}
+
+        upsert_booking(member_id, attraction_id, date, time, price)
+        app_url = os.getenv("APP_URL", "").rstrip("/")
+        booking_url = f"{app_url}/booking" if app_url else "/booking"
+        return {
+            "ok": True,
+            "message": f"台北導覽行程,預定成功,請到 {booking_url} 完成付款。",
+        }
+    except Exception:
+        return {"error": True}
+
+
+# FastMCP 的 lifespan 綁定到既有 FastAPI app，避免覆蓋網站與 API 路由。
+mcp_app = mcp.http_app(path="/")
+app.router.lifespan_context = mcp_app.lifespan
+app.mount("/mcp", mcp_app)

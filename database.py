@@ -1,11 +1,12 @@
 import json
+import hashlib
 import os
 import secrets
 from datetime import datetime
-import mysql.connector
 from typing import Any
 from dotenv import load_dotenv
 from mysql.connector import Error
+from mysql.connector import pooling
 from models.attractions import Attraction
 
 load_dotenv()
@@ -19,10 +20,33 @@ DB_CONFIG = {
 }
 
 IMG_HOST = os.getenv("IMG_HOST", "")
+DB_POOL_SIZE = int(os.getenv("DB_POOL_SIZE", "5"))
+
+connection_pool = None
+connection_pool_error = None
+
+try:
+    connection_pool = pooling.MySQLConnectionPool(
+        pool_name="taipei_day_trip",
+        pool_size=DB_POOL_SIZE,
+        pool_reset_session=True,  # 當連線歸還時，自動重設 session 狀態
+        **DB_CONFIG,
+    )
+except Error as e:
+    connection_pool_error = e
+    print(f"建立連線池失敗: {e}")
 
 
 def get_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    if connection_pool is None:
+        raise RuntimeError("資料庫連線池尚未建立") from connection_pool_error
+
+    connection = connection_pool.get_connection()
+
+    # 拿出來時檢查連線是否還活著，如果死了就自動重連
+    connection.ping(reconnect=True, attempts=3, delay=2)
+
+    return connection
 
 
 def create_member(name: str, email: str, password_hash: str) -> bool:
@@ -75,6 +99,51 @@ def get_member_by_id(member_id: int) -> dict[str, Any] | None:
             cursor.close()
         if conn.is_connected():
             conn.close()
+
+
+def create_or_update_member_token(member_id: int, token: str) -> bool:
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    conn = get_connection()
+    cursor = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO members_token (member_id, token_hash)
+            VALUES (%s, %s)
+            ON DUPLICATE KEY UPDATE token_hash = VALUES(token_hash)
+            """,
+            (member_id, token_hash),
+        )
+        conn.commit()
+        return True
+    finally:
+        if cursor is not None:
+            cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+
+def get_member_id_by_token(raw_token: str) -> int | None:
+    """
+    當 MCP Server 收到 Bearer Token 時，將其轉為 SHA256 後至資料庫查詢對應的 member_id。
+    """
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        token_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+
+        cursor.execute(
+            "SELECT member_id FROM members_token WHERE token_hash = %s", (token_hash,)
+        )
+
+        result = cursor.fetchone()
+        return result["member_id"] if result else None
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def normalize_json_field(value: Any) -> list[str]:
